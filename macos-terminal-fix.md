@@ -7,24 +7,39 @@ zsh: command not found: -bash
 ```
 
 ## Root Cause
-Something in your shell configuration files is trying to execute `-bash` as a command. This typically happens when there's a malformed line in one of your zsh startup files.
+Something is trying to execute `-bash` as a command. This most commonly happens in one of two places:
+1. **Terminal app preferences** (most common - check this first!)
+2. Shell configuration files with malformed lines
 
-## Common Locations to Check
+## Quick Fix Steps
 
-The issue is likely in one of these files in your home directory:
+### Step 1: Check Terminal Preferences (MOST COMMON CAUSE)
+
+**This is where the issue is 90% of the time!**
+
+1. Open **Terminal** app
+2. Go to **Terminal** menu → **Preferences** (or press `Cmd+,`)
+3. Click on the **Profiles** tab
+4. Select your default profile (the one with a checkmark or labeled "Default")
+5. Click the **Shell** tab on the right side
+6. Look for the **Startup** section
+7. Check if **"Run command:"** is checked
+8. If it says `-bash` or anything with `-bash`:
+   - Uncheck the "Run command" box, OR
+   - Delete the `-bash` text
+9. Close Preferences
+10. Quit Terminal completely (`Cmd+Q`)
+11. Reopen Terminal - the error should be gone!
+
+### Step 2: If Terminal Preferences Were Clean, Check Configuration Files
+
+If the Terminal preferences didn't have the issue, check your shell configuration files.
+
+The issue might be in one of these files in your home directory:
 - `~/.zshrc` (most common)
 - `~/.zprofile`
 - `~/.zshenv`
 - `~/.bash_profile` (if it's being sourced)
-
-## Quick Fix Steps
-
-### Step 1: Open Terminal in Safe Mode
-1. Open Terminal
-2. Even though you see the error, the terminal should still be usable
-3. You can ignore the error message for now
-
-### Step 2: Check Your Shell Configuration Files
 
 Run these commands to inspect your configuration files:
 
@@ -42,7 +57,7 @@ cat ~/.zshenv
 cat ~/.bash_profile
 ```
 
-### Step 3: Look for the Problem
+### Step 3: Search for the Problem
 
 Search for lines containing `-bash`:
 ```bash
@@ -108,13 +123,6 @@ cp ~/.zshrc ~/.zshrc.backup
 cp ~/.zprofile ~/.zprofile.backup
 cp ~/.zshenv ~/.zshenv.backup
 ```
-
-## Still Having Issues?
-
-If the error persists:
-1. Check if you have any custom Terminal profiles that execute commands on startup
-2. Open Terminal preferences (Cmd+,) → Profiles → Shell
-3. Ensure "Run command" is not checked or doesn't contain `-bash`
 
 ## Restore Default Configuration
 

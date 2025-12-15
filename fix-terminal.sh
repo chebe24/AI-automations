@@ -12,7 +12,31 @@ echo ""
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}⚠  CHECK TERMINAL PREFERENCES FIRST! (90% of cases)${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Before running this script, check if the issue is in Terminal preferences:"
+echo ""
+echo "  1. Open Terminal → Preferences (Cmd+,)"
+echo "  2. Click 'Profiles' tab"
+echo "  3. Select your default profile"
+echo "  4. Click 'Shell' tab"
+echo "  5. Look for 'Run command:' checkbox"
+echo "  6. If it says '-bash', uncheck it or delete the text"
+echo "  7. Quit Terminal (Cmd+Q) and reopen"
+echo ""
+read -p "Have you already checked Terminal preferences? (y/n): " -n 1 -r
+echo ""
+echo ""
+
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Please check Terminal preferences first, then re-run this script if needed."
+    exit 0
+fi
 
 # Files to check
 CONFIG_FILES=(
@@ -23,7 +47,7 @@ CONFIG_FILES=(
     "$HOME/.bashrc"
 )
 
-echo "Step 1: Checking for problematic lines..."
+echo "Step 1: Checking shell configuration files..."
 echo ""
 
 FOUND_ISSUE=0
@@ -53,10 +77,15 @@ done
 if [ $FOUND_ISSUE -eq 0 ]; then
     echo -e "${GREEN}No obvious issues found in shell configuration files.${NC}"
     echo ""
-    echo "The issue might be in:"
-    echo "1. Terminal app preferences (Terminal → Preferences → Profiles → Shell)"
-    echo "2. A script being sourced from one of your config files"
-    echo "3. System-wide configuration in /etc/zshrc or /etc/zprofile"
+    echo "Since you already checked Terminal preferences and config files are clean,"
+    echo "the issue might be in:"
+    echo "1. A script being sourced from one of your config files"
+    echo "2. System-wide configuration in /etc/zshrc or /etc/zprofile"
+    echo "3. A hidden or unusual configuration file"
+    echo ""
+    echo "To check system-wide configs, try:"
+    echo "  cat /etc/zshrc"
+    echo "  cat /etc/zprofile"
     exit 0
 fi
 
@@ -101,12 +130,6 @@ echo ""
 echo "======================================"
 echo "Additional Checks"
 echo "======================================"
-echo ""
-
-# Check Terminal preferences
-echo "Don't forget to check Terminal preferences:"
-echo "  Terminal → Preferences → Profiles → Shell"
-echo "  Ensure 'Run command' is not set to '-bash'"
 echo ""
 
 # Check for exec commands
