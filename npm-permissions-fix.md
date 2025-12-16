@@ -1,5 +1,33 @@
 # Fixing npm Global Install Permissions on macOS
 
+## Quick Automated Fix
+
+**Don't want to read the full guide? Run this automated script:**
+
+```bash
+# Clone the repo and run the script
+git clone https://github.com/chebe24/AI-automations.git
+cd AI-automations
+chmod +x fix-npm-permissions.sh
+./fix-npm-permissions.sh
+```
+
+Or download and run directly:
+```bash
+curl -o fix-npm.sh https://raw.githubusercontent.com/chebe24/AI-automations/main/fix-npm-permissions.sh
+chmod +x fix-npm.sh
+./fix-npm.sh
+```
+
+**For Gemini CLI specifically**, use the all-in-one installer:
+```bash
+curl -o install-gemini.sh https://raw.githubusercontent.com/chebe24/AI-automations/main/install-gemini-cli.sh
+chmod +x install-gemini.sh
+./install-gemini.sh
+```
+
+---
+
 ## Problem
 When trying to install global npm packages on macOS, you encounter this error:
 ```
