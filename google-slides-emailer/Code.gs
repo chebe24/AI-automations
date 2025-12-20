@@ -13,7 +13,7 @@
  */
 function generateAndEmailSlides() {
   // --- CONFIGURATION ZONE ---
-  const TEMPLATE_ID = 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE'; // The ID of your Google Slides template
+  const TEMPLATE_ID = '1bvqkGOzNtprkWFh4STGnK2DvhVb563VeR4_qWWDORcU'; // The ID of your Google Slides template
   const FOLDER_NAME = 'Inbox';
   const EMAIL_RECIPIENT = 'chebert4@ebrschools.org';
   const SHEET_NAME = 'masterconduct';
