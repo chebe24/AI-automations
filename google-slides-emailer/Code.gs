@@ -74,17 +74,27 @@ function generateAndEmailSlides() {
       Logger.log('Created new folder: ' + CONFIG.FOLDER_NAME);
     }
 
-    // 3. Create the NEW Presentation from template
+    // 3. Validate template is a Google Slides file
+    const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+    const templateMimeType = templateFile.getMimeType();
+
+    if (templateMimeType !== 'application/vnd.google-apps.presentation') {
+      throw new Error(
+        'Template ID points to a ' + templateMimeType + ' file, not a Google Slides presentation. ' +
+        'Please use a Google Slides file as your template. Current template: "' + templateFile.getName() + '"'
+      );
+    }
+
+    // 4. Create the NEW Presentation from template
     const dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
     const newFileName = "Weekly Slides - " + dateString;
 
-    const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
     const newFile = templateFile.makeCopy(newFileName, folder);
     const newDeck = SlidesApp.openById(newFile.getId());
 
     Logger.log('Created new presentation: ' + newFileName);
 
-    // 4. Get the template slide (first slide in the copied presentation)
+    // 5. Get the template slide (first slide in the copied presentation)
     const slides = newDeck.getSlides();
     if (slides.length === 0) {
       throw new Error('Template presentation has no slides');
@@ -92,7 +102,7 @@ function generateAndEmailSlides() {
 
     const templateSlide = slides[0];
 
-    // 5. Generate slides for each student
+    // 6. Generate slides for each student
     let processedCount = 0;
     let weekRangeValue = '';
 
@@ -116,17 +126,11 @@ function generateAndEmailSlides() {
 
       Logger.log('Processing student ' + (i + 1) + ': ' + firstName + ' ' + lastName);
 
-      // Duplicate the template slide
-      let currentSlide;
-      if (i === 0) {
-        // For the first student, use the existing template slide
-        currentSlide = templateSlide;
-      } else {
-        // For subsequent students, duplicate the template
-        currentSlide = templateSlide.duplicate();
-      }
+      // ALWAYS duplicate from the original template to get a clean copy
+      // This ensures each slide is created from the unmodified template
+      let currentSlide = templateSlide.duplicate();
 
-      // Perform text replacements
+      // Perform text replacements on the duplicate
       let fullName = firstName.toString() + " " + lastName.toString();
       currentSlide.replaceAllText("<<name>>", fullName);
       currentSlide.replaceAllText("<<Teacher>>", teacher ? teacher.toString() : "");
@@ -135,13 +139,16 @@ function generateAndEmailSlides() {
       processedCount++;
     }
 
+    // Remove the original template slide (it's unmodified and no longer needed)
+    templateSlide.remove();
+
     Logger.log('Processed ' + processedCount + ' student slides');
 
-    // 6. Save the presentation
+    // 7. Save the presentation
     newDeck.saveAndClose();
     Logger.log('Presentation saved successfully');
 
-    // 7. Email the file as PDF
+    // 8. Email the file as PDF
     const pdfBlob = newFile.getAs(MimeType.PDF);
     const emailSubject = "Weekly Student Slides - " + dateString;
     const emailBody =
