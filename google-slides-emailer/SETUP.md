@@ -18,6 +18,8 @@ This script automates the process of:
   - Google Drive (for file storage)
   - Gmail (for sending emails)
 
+**🚀 New to Google Apps Script?** Check out the **[Deployment Guide](./DEPLOYMENT.md)** for step-by-step installation instructions!
+
 ## Step-by-Step Setup
 
 ### 1. Prepare Your Google Sheets Database

@@ -17,11 +17,14 @@ Automatically generate personalized Google Slides presentations from student dat
 - Custom menu integration in Google Sheets
 
 **Quick Start:**
-1. Follow the [Setup Guide](./google-slides-emailer/SETUP.md)
+1. [Deploy to Google Sheets](./google-slides-emailer/DEPLOYMENT.md)
 2. Configure your template ID and data columns
 3. Run from the custom menu: `📧 Weekly Slides → Generate and Email Slides`
 
-[📖 Full Documentation](./google-slides-emailer/SETUP.md)
+**Documentation:**
+- [🚀 Deployment Guide](./google-slides-emailer/DEPLOYMENT.md) - How to install and deploy
+- [📖 Setup Guide](./google-slides-emailer/SETUP.md) - Configuration and usage
+- [📄 README](./google-slides-emailer/README.md) - Quick reference
 
 ## Guides
 

@@ -19,12 +19,15 @@ This Google Apps Script automation:
 
 ## Quick Start
 
-1. **Read the Setup Guide:** [SETUP.md](./SETUP.md)
+1. **[Deploy the script](./DEPLOYMENT.md)** - Step-by-step deployment guide
 2. **Prepare your template:** Create a Google Slides file with placeholders
-3. **Install the script:** Copy `Code.gs` into your Google Sheets Apps Script editor
-4. **Configure:** Update the TEMPLATE_ID and other settings
-5. **Test:** Run `testConfiguration()` to verify setup
-6. **Run:** Use the custom menu `📧 Weekly Slides → Generate and Email Slides`
+3. **Configure:** Update the CONFIG.TEMPLATE_ID and other settings
+4. **Test:** Run `testConfiguration()` to verify setup
+5. **Run:** Use the custom menu `📧 Weekly Slides → Generate and Email Slides`
+
+📖 **Guides:**
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - How to deploy the script to Google Sheets
+- **[SETUP.md](./SETUP.md)** - Detailed configuration and usage guide
 
 ## Template Placeholders
 
