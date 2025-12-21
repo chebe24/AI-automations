@@ -191,14 +191,26 @@ function generateAndEmailSlides() {
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
-  ui.createMenu('📧 Weekly Slides')
-    .addItem('Generate and Email Slides', 'generateAndEmailSlides')
-    .addItem('Test Configuration', 'testConfiguration')
-    .addSeparator()
-    .addItem('View Logs', 'viewLogs')
-    .addToUi();
-}
+  const menu = ui.createMenu('Slides Emailer');
 
+  const menuItems = [
+    { name: 'Generate and Email Slides', functionName: 'generateAndEmailSlides' },
+    // add more items here as needed, e.g.:
+    // { name: 'Test Configuration', functionName: 'testConfiguration' },
+    // { separator: true },
+    // { name: 'View Logs', functionName: 'viewLogs' }
+  ];
+
+  menuItems.forEach(item => {
+    if (item.separator) {
+      menu.addSeparator();
+    } else {
+      menu.addItem(item.name, item.functionName);
+    }
+  });
+
+  menu.addToUi();
+}
 /**
  * Opens the Apps Script logs in a new window
  */
