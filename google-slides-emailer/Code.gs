@@ -5,9 +5,18 @@
  * populated with data from a Google Sheets database, and emails it as a PDF.
  *
  * @author AI Automations
- * @version 1.0.0
+ * @version 1.1.0
  */
 
+// ========================================
+// CENTRALIZED CONFIGURATION
+// ========================================
+// Edit these values to match your setup
+const CONFIG = {
+  TEMPLATE_ID: 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE', // The ID of your Google Slides template
+  FOLDER_NAME: 'Inbox',
+  EMAIL_RECIPIENT: 'chebert4@ebrschools.org',
+  SHEET_NAME: 'masterconduct',
 /**
  * Main function to generate slides and email them
  */
@@ -19,51 +28,57 @@ function generateAndEmailSlides() {
   const SHEET_NAME = 'masterconduct';
 
   // Data Range settings (Rows 7 to 18 = 12 students)
-  const START_ROW = 7;
-  const NUM_ROWS = 12;
+  START_ROW: 7,
+  NUM_ROWS: 12,
 
   // Column Indices (A=0, B=1, C=2, etc.)
-  const COL_FIRST_NAME = 1; // Col B
-  const COL_LAST_NAME = 2;  // Col C
-  const COL_WEEK = 4;       // Col E (Week Range)
-  const COL_TEACHER = 10;   // Col K
-  // --------------------------
+  COL_FIRST_NAME: 1,  // Col B
+  COL_LAST_NAME: 2,   // Col C
+  COL_WEEK: 4,        // Col E (Week Range)
+  COL_TEACHER: 10     // Col K
+};
+// ========================================
+
+/**
+ * Main function to generate slides and email them
+ */
+function generateAndEmailSlides() {
 
   try {
     // Validate Template ID
-    if (TEMPLATE_ID === 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE') {
-      throw new Error('Please configure TEMPLATE_ID with your Google Slides template ID');
+    if (CONFIG.TEMPLATE_ID === 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE') {
+      throw new Error('Please configure CONFIG.TEMPLATE_ID with your Google Slides template ID');
     }
 
     Logger.log('Starting slide generation process...');
 
     // 1. Get spreadsheet data
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(SHEET_NAME);
+    const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
 
     if (!sheet) {
-      throw new Error('Sheet "' + SHEET_NAME + '" not found. Please check the SHEET_NAME configuration.');
+      throw new Error('Sheet "' + CONFIG.SHEET_NAME + '" not found. Please check the CONFIG.SHEET_NAME configuration.');
     }
 
-    const data = sheet.getRange(START_ROW, 1, NUM_ROWS, sheet.getLastColumn()).getValues();
+    const data = sheet.getRange(CONFIG.START_ROW, 1, CONFIG.NUM_ROWS, sheet.getLastColumn()).getValues();
     Logger.log('Retrieved ' + data.length + ' rows of student data');
 
     // 2. Find or Create 'Inbox' Folder
-    const folders = DriveApp.getFoldersByName(FOLDER_NAME);
+    const folders = DriveApp.getFoldersByName(CONFIG.FOLDER_NAME);
     let folder;
     if (folders.hasNext()) {
       folder = folders.next();
-      Logger.log('Found existing folder: ' + FOLDER_NAME);
+      Logger.log('Found existing folder: ' + CONFIG.FOLDER_NAME);
     } else {
-      folder = DriveApp.createFolder(FOLDER_NAME);
-      Logger.log('Created new folder: ' + FOLDER_NAME);
+      folder = DriveApp.createFolder(CONFIG.FOLDER_NAME);
+      Logger.log('Created new folder: ' + CONFIG.FOLDER_NAME);
     }
 
     // 3. Create the NEW Presentation from template
     const dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
     const newFileName = "Weekly Slides - " + dateString;
 
-    const templateFile = DriveApp.getFileById(TEMPLATE_ID);
+    const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
     const newFile = templateFile.makeCopy(newFileName, folder);
     const newDeck = SlidesApp.openById(newFile.getId());
 
@@ -83,14 +98,14 @@ function generateAndEmailSlides() {
 
     for (let i = 0; i < data.length; i++) {
       let row = data[i];
-      let firstName = row[COL_FIRST_NAME];
-      let lastName = row[COL_LAST_NAME];
-      let weekRange = row[COL_WEEK];
-      let teacher = row[COL_TEACHER];
+      let firstName = row[CONFIG.COL_FIRST_NAME];
+      let lastName = row[CONFIG.COL_LAST_NAME];
+      let weekRange = row[CONFIG.COL_WEEK];
+      let teacher = row[CONFIG.COL_TEACHER];
 
       // Skip empty rows
       if (!firstName || firstName.toString().trim() === '') {
-        Logger.log('Skipping empty row ' + (START_ROW + i));
+        Logger.log('Skipping empty row ' + (CONFIG.START_ROW + i));
         continue;
       }
 
@@ -136,17 +151,17 @@ function generateAndEmailSlides() {
       "Generated: " + dateString + "\n\n" +
       "This email was sent automatically by the Weekly Slides Generator script.";
 
-    GmailApp.sendEmail(EMAIL_RECIPIENT, emailSubject, emailBody, {
+    GmailApp.sendEmail(CONFIG.EMAIL_RECIPIENT, emailSubject, emailBody, {
       attachments: [pdfBlob],
       name: "Weekly Slides Generator"
     });
 
-    Logger.log('Email sent successfully to ' + EMAIL_RECIPIENT);
+    Logger.log('Email sent successfully to ' + CONFIG.EMAIL_RECIPIENT);
 
     // Show success message
     SpreadsheetApp.getUi().alert(
       'Success!',
-      'Generated ' + processedCount + ' slides and sent to ' + EMAIL_RECIPIENT,
+      'Generated ' + processedCount + ' slides and sent to ' + CONFIG.EMAIL_RECIPIENT,
       SpreadsheetApp.getUi().ButtonSet.OK
     );
 
@@ -171,6 +186,7 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('📧 Weekly Slides')
     .addItem('Generate and Email Slides', 'generateAndEmailSlides')
+    .addItem('Test Configuration', 'testConfiguration')
     .addSeparator()
     .addItem('View Logs', 'viewLogs')
     .addToUi();
@@ -193,22 +209,29 @@ function viewLogs() {
 
 /**
  * Test function to validate configuration without sending email
+ * This function reads from the centralized CONFIG object
  */
 function testConfiguration() {
-  const TEMPLATE_ID = 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE';
-  const SHEET_NAME = 'masterconduct';
-  const START_ROW = 7;
-  const NUM_ROWS = 12;
-
   let errors = [];
+  let warnings = [];
+  let successes = [];
+
+  Logger.log('Starting configuration test...');
 
   // Test 1: Template ID
-  if (TEMPLATE_ID === 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE') {
+  if (CONFIG.TEMPLATE_ID === 'ENTER_YOUR_TEMPLATE_SLIDE_ID_HERE') {
     errors.push('❌ Template ID not configured');
   } else {
     try {
-      DriveApp.getFileById(TEMPLATE_ID);
-      Logger.log('✅ Template file found');
+      const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+      const templateName = templateFile.getName();
+      successes.push('✅ Template file found: "' + templateName + '"');
+      Logger.log('✅ Template file accessible: ' + templateName);
+
+      // Check if it's actually a Google Slides file
+      if (templateFile.getMimeType() !== 'application/vnd.google-apps.presentation') {
+        warnings.push('⚠️ Template file is not a Google Slides presentation');
+      }
     } catch (e) {
       errors.push('❌ Template file not accessible: ' + e.toString());
     }
@@ -217,18 +240,91 @@ function testConfiguration() {
   // Test 2: Sheet exists
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(SHEET_NAME);
+    const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
     if (sheet) {
-      Logger.log('✅ Sheet "' + SHEET_NAME + '" found');
+      successes.push('✅ Sheet "' + CONFIG.SHEET_NAME + '" found');
+      Logger.log('✅ Sheet "' + CONFIG.SHEET_NAME + '" found');
 
       // Test 3: Data exists
-      const data = sheet.getRange(START_ROW, 1, NUM_ROWS, sheet.getLastColumn()).getValues();
+      const data = sheet.getRange(CONFIG.START_ROW, 1, CONFIG.NUM_ROWS, sheet.getLastColumn()).getValues();
+      successes.push('✅ Retrieved ' + data.length + ' rows of data (rows ' + CONFIG.START_ROW + '-' + (CONFIG.START_ROW + CONFIG.NUM_ROWS - 1) + ')');
       Logger.log('✅ Retrieved ' + data.length + ' rows of data');
+
+      // Test 4: Check for student data
+      let studentCount = 0;
+      for (let i = 0; i < data.length; i++) {
+        let firstName = data[i][CONFIG.COL_FIRST_NAME];
+        if (firstName && firstName.toString().trim() !== '') {
+          studentCount++;
+        }
+      }
+
+      if (studentCount === 0) {
+        warnings.push('⚠️ No student data found in specified rows');
+      } else {
+        successes.push('✅ Found ' + studentCount + ' students with data');
+        Logger.log('✅ Found ' + studentCount + ' students');
+      }
+
+      // Test 5: Check column data
+      let hasWeekData = false;
+      let hasTeacherData = false;
+
+      for (let i = 0; i < data.length; i++) {
+        if (data[i][CONFIG.COL_WEEK] && data[i][CONFIG.COL_WEEK].toString().trim() !== '') {
+          hasWeekData = true;
+        }
+        if (data[i][CONFIG.COL_TEACHER] && data[i][CONFIG.COL_TEACHER].toString().trim() !== '') {
+          hasTeacherData = true;
+        }
+      }
+
+      if (!hasWeekData) {
+        warnings.push('⚠️ No week data found in column ' + String.fromCharCode(65 + CONFIG.COL_WEEK));
+      }
+      if (!hasTeacherData) {
+        warnings.push('⚠️ No teacher data found in column ' + String.fromCharCode(65 + CONFIG.COL_TEACHER));
+      }
+
     } else {
-      errors.push('❌ Sheet "' + SHEET_NAME + '" not found');
+      errors.push('❌ Sheet "' + CONFIG.SHEET_NAME + '" not found');
     }
   } catch (e) {
     errors.push('❌ Error accessing sheet: ' + e.toString());
+  }
+
+  // Test 6: Folder access
+  try {
+    const folders = DriveApp.getFoldersByName(CONFIG.FOLDER_NAME);
+    if (folders.hasNext()) {
+      successes.push('✅ Output folder "' + CONFIG.FOLDER_NAME + '" exists');
+    } else {
+      warnings.push('⚠️ Output folder "' + CONFIG.FOLDER_NAME + '" does not exist (will be created)');
+    }
+  } catch (e) {
+    warnings.push('⚠️ Could not check folder: ' + e.toString());
+  }
+
+  // Test 7: Email recipient
+  if (CONFIG.EMAIL_RECIPIENT && CONFIG.EMAIL_RECIPIENT.includes('@')) {
+    successes.push('✅ Email recipient configured: ' + CONFIG.EMAIL_RECIPIENT);
+  } else {
+    errors.push('❌ Invalid email recipient');
+  }
+
+  // Build result message
+  let message = '';
+
+  if (successes.length > 0) {
+    message += 'PASSED CHECKS:\n' + successes.join('\n') + '\n\n';
+  }
+
+  if (warnings.length > 0) {
+    message += 'WARNINGS:\n' + warnings.join('\n') + '\n\n';
+  }
+
+  if (errors.length > 0) {
+    message += 'ERRORS:\n' + errors.join('\n');
   }
 
   // Show results
@@ -236,14 +332,16 @@ function testConfiguration() {
   if (errors.length === 0) {
     ui.alert(
       'Configuration Test Passed ✅',
-      'All configuration checks passed! You can now run the main script.',
+      message + '\nYou can now run the main script!',
       ui.ButtonSet.OK
     );
   } else {
     ui.alert(
       'Configuration Test Failed ❌',
-      'Please fix the following issues:\n\n' + errors.join('\n'),
+      message + '\n\nPlease fix the errors before running the script.',
       ui.ButtonSet.OK
     );
   }
+
+  Logger.log('Configuration test complete. Errors: ' + errors.length + ', Warnings: ' + warnings.length);
 }
