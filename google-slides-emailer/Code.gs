@@ -107,17 +107,11 @@ function generateAndEmailSlides() {
 
       Logger.log('Processing student ' + (i + 1) + ': ' + firstName + ' ' + lastName);
 
-      // Duplicate the template slide
-      let currentSlide;
-      if (i === 0) {
-        // For the first student, use the existing template slide
-        currentSlide = templateSlide;
-      } else {
-        // For subsequent students, duplicate the template
-        currentSlide = templateSlide.duplicate();
-      }
+      // ALWAYS duplicate from the original template to get a clean copy
+      // This ensures each slide is created from the unmodified template
+      let currentSlide = templateSlide.duplicate();
 
-      // Perform text replacements
+      // Perform text replacements on the duplicate
       let fullName = firstName.toString() + " " + lastName.toString();
       currentSlide.replaceAllText("<<name>>", fullName);
       currentSlide.replaceAllText("<<Teacher>>", teacher ? teacher.toString() : "");
@@ -125,6 +119,9 @@ function generateAndEmailSlides() {
 
       processedCount++;
     }
+
+    // Remove the original template slide (it's unmodified and no longer needed)
+    templateSlide.remove();
 
     Logger.log('Processed ' + processedCount + ' student slides');
 
