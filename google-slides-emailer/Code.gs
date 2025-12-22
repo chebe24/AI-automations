@@ -35,7 +35,12 @@ function generateAndEmailSlides() {
   COL_FIRST_NAME: 1,  // Col B
   COL_LAST_NAME: 2,   // Col C
   COL_WEEK: 4,        // Col E (Week Range)
-  COL_TEACHER: 10     // Col K
+  COL_TEACHER: 10,    // Col K
+
+  // Font customization (optional - set to null to keep template formatting)
+  FONT_SIZE_NAME: null,     // Font size for student name (e.g., 24, or null to keep template size)
+  FONT_SIZE_TEACHER: null,  // Font size for teacher name
+  FONT_SIZE_WEEK: null      // Font size for week range
 };
 // ========================================
 
@@ -136,6 +141,32 @@ function generateAndEmailSlides() {
       currentSlide.replaceAllText("<<Teacher>>", teacher ? teacher.toString() : "");
       currentSlide.replaceAllText("<<week>>", weekRange ? weekRange.toString() : "");
 
+      // Apply font size customization if configured
+      if (CONFIG.FONT_SIZE_NAME !== null || CONFIG.FONT_SIZE_TEACHER !== null || CONFIG.FONT_SIZE_WEEK !== null) {
+        let shapes = currentSlide.getShapes();
+        for (let shape of shapes) {
+          if (shape.getText) {
+            let text = shape.getText();
+            let textRange = text.asString();
+
+            // Set font size for name
+            if (CONFIG.FONT_SIZE_NAME !== null && textRange.includes(fullName)) {
+              text.getTextStyle().setFontSize(CONFIG.FONT_SIZE_NAME);
+            }
+
+            // Set font size for teacher
+            if (CONFIG.FONT_SIZE_TEACHER !== null && teacher && textRange.includes(teacher.toString())) {
+              text.getTextStyle().setFontSize(CONFIG.FONT_SIZE_TEACHER);
+            }
+
+            // Set font size for week
+            if (CONFIG.FONT_SIZE_WEEK !== null && weekRange && textRange.includes(weekRange.toString())) {
+              text.getTextStyle().setFontSize(CONFIG.FONT_SIZE_WEEK);
+            }
+          }
+        }
+      }
+
       processedCount++;
     }
 
@@ -191,23 +222,15 @@ function generateAndEmailSlides() {
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
-  const menu = ui.createMenu('Slides Emailer');
-
-  const menuItems = [
-    { name: 'Generate and Email Slides', functionName: 'generateAndEmailSlides' },
-    // add more items here as needed, e.g.:
-    // { name: 'Test Configuration', functionName: 'testConfiguration' },
-    // { separator: true },
-    // { name: 'View Logs', functionName: 'viewLogs' }
-  ];
-
-  menuItems.forEach(item => {
-    if (item.separator) {
-      menu.addSeparator();
-    } else {
-      menu.addItem(item.name, item.functionName);
-    }
-  });
+  ui.createMenu('📧 Weekly Slides')
+    .addItem('Generate and Email Slides', 'generateAndEmailSlides')
+    .addSeparator()
+    .addItem('Test Configuration', 'testConfiguration')
+    .addItem('🔍 Check Student Data', 'diagnosticCheckStudentData')
+    .addSeparator()
+    .addItem('View Logs', 'viewLogs')
+    .addToUi();
+}
 
   menu.addToUi();
 }
@@ -224,6 +247,45 @@ function viewLogs() {
     '3. Click on any execution to see its logs',
     ui.ButtonSet.OK
   );
+}
+
+/**
+ * DIAGNOSTIC: Check what student data is being read
+ * This helps debug issues with duplicate names
+ */
+function diagnosticCheckStudentData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert('Error', 'Sheet "' + CONFIG.SHEET_NAME + '" not found!', SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
+
+  const data = sheet.getRange(CONFIG.START_ROW, 1, CONFIG.NUM_ROWS, sheet.getLastColumn()).getValues();
+
+  let report = 'STUDENT DATA DIAGNOSTIC\n\n';
+  report += 'Reading from sheet: "' + CONFIG.SHEET_NAME + '"\n';
+  report += 'Rows: ' + CONFIG.START_ROW + ' to ' + (CONFIG.START_ROW + CONFIG.NUM_ROWS - 1) + '\n';
+  report += 'First Name Column: ' + String.fromCharCode(65 + CONFIG.COL_FIRST_NAME) + ' (index ' + CONFIG.COL_FIRST_NAME + ')\n';
+  report += 'Last Name Column: ' + String.fromCharCode(65 + CONFIG.COL_LAST_NAME) + ' (index ' + CONFIG.COL_LAST_NAME + ')\n\n';
+  report += 'STUDENTS FOUND:\n';
+  report += '─────────────────\n';
+
+  for (let i = 0; i < data.length; i++) {
+    let firstName = data[i][CONFIG.COL_FIRST_NAME];
+    let lastName = data[i][CONFIG.COL_LAST_NAME];
+    let rowNum = CONFIG.START_ROW + i;
+
+    if (firstName && firstName.toString().trim() !== '') {
+      report += 'Row ' + rowNum + ': ' + firstName + ' ' + lastName + '\n';
+    } else {
+      report += 'Row ' + rowNum + ': (empty)\n';
+    }
+  }
+
+  Logger.log(report);
+  SpreadsheetApp.getUi().alert('Student Data Diagnostic', report, SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
 /**
