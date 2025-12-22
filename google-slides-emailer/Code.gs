@@ -17,6 +17,15 @@ const CONFIG = {
   FOLDER_NAME: 'Inbox',
   EMAIL_RECIPIENT: 'chebert4@ebrschools.org',
   SHEET_NAME: 'masterconduct',
+/**
+ * Main function to generate slides and email them
+ */
+function generateAndEmailSlides() {
+  // --- CONFIGURATION ZONE ---
+  const TEMPLATE_ID = '1bvqkGOzNtprkWFh4STGnK2DvhVb563VeR4_qWWDORcU'; // The ID of your Google Slides template
+  const FOLDER_NAME = 'Inbox';
+  const EMAIL_RECIPIENT = 'chebert4@ebrschools.org';
+  const SHEET_NAME = 'masterconduct';
 
   // Data Range settings (Rows 7 to 18 = 12 students)
   START_ROW: 7,
@@ -223,6 +232,8 @@ function onOpen() {
     .addToUi();
 }
 
+  menu.addToUi();
+}
 /**
  * Opens the Apps Script logs in a new window
  */
