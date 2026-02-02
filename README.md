@@ -26,6 +26,29 @@ Automatically generate personalized Google Slides presentations from student dat
 - [📖 Setup Guide](./google-slides-emailer/SETUP.md) - Configuration and usage
 - [📄 README](./google-slides-emailer/README.md) - Quick reference
 
+### Bell Ringer Slide Generator (Journal du Matin)
+**Location:** `bell-ringer-slides/`
+
+Generate daily "Journal du Matin" bell ringer slides for French Immersion classes from a Google Sheet.
+
+**Features:**
+- Reads date, math problem, and French skill data from a spreadsheet
+- Converts dates to French format (e.g., "lundi 12 février")
+- Creates a new Google Slides presentation with one slide per day
+- Placeholder replacement: `{{FrenchDate}}`, `{{MathReviewProblem}}`, `{{FrenchDWL}}`
+- Marks processed rows as "Done" to prevent duplicates
+- Custom menu integration: `⚡ Admin → Generate Slides`
+
+**Quick Start:**
+1. Set up your [Google Sheet and Slides template](./bell-ringer-slides/SETUP.md)
+2. Install the script via Extensions > Apps Script
+3. Run from the custom menu: `⚡ Admin → Generate Slides`
+
+**Documentation:**
+- [Setup Guide](./bell-ringer-slides/SETUP.md) - Installation, configuration, and usage
+
+---
+
 ## Guides
 
 - [npm Permissions Fix for macOS](./npm-permissions-fix.md) - Resolve EACCES errors when installing global npm packages
