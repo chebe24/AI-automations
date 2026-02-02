@@ -1,162 +1,240 @@
-# Journal du Matin - Bell Ringer Slide Generator
+# Journal du Matin - Full Year Bell Ringer Generator
 
 ## What It Does
 
-This Google Apps Script reads rows from a Google Sheet and generates a Google Slides presentation with one slide per row. Each slide is populated with:
+Generates **weekly** Google Slides presentations for the entire EBR 2025-26 school year (177 instructional days). Each week gets one presentation with one slide per school day, populated from spiral content sheets.
 
-- A **French-formatted date** (e.g., "lundi 12 février")
-- A **math/LEAP spiral review problem**
-- A **French dictée or word-level skill**
-
-After generation, each processed row is marked as "Done" in the sheet so it won't be regenerated.
+**Key features:**
+- Full EBR 2025-26 school calendar (holidays, breaks, PD days excluded)
+- Spiral content from `FrenchSpiral` and `MathSpiral` sheets
+- French error introduction engine (starts Feb 2, 2026)
+- Batch generation (5 weeks per run to avoid Apps Script time limits)
+- Drive folder organization by week
+- French vocabulary extraction from Drive folders
 
 ---
 
 ## Prerequisites
 
-- A Google account with access to Google Sheets, Slides, and Drive
-- Your Google Slides template (ID already configured in the script)
-- A Google Sheet with bell ringer data
+- Google account with access to Sheets, Slides, and Drive
+- A Google Slides template with placeholders (see below)
+- A Google Drive output folder for generated presentations
 
 ---
 
-## Google Sheet Layout
+## Step 1: Create Spiral Content Sheets
 
-Your sheet must have this column structure starting from **Row 2** (Row 1 is the header):
+In your Google Sheet, create two tabs:
 
-| Column A | Column B | Column C | Column D |
-|----------|----------|----------|----------|
-| **Date** | **MathProblem** | **FrenchSkill** | **Generated?** |
-| 2/12/2025 | 3 × 7 = ? | Écrivez: le chat | |
-| 2/13/2025 | 15 - 8 = ? | Dictée: la maison | |
+### FrenchSpiral
 
-- **Date** — Any valid date format Google Sheets recognizes.
-- **MathProblem** — The spiral review / LEAP content (text string).
-- **FrenchSkill** — The dictée or word-level work (text string).
-- **Generated?** — Leave blank. The script fills in "Done" after processing.
+| A: DayNumber | B: Theme | C: CorrectSentence | D: ErrorType |
+|---|---|---|---|
+| 1 | Greeting | Bonjour, je m'appelle Cary. | none |
+| 2 | Calendar | Aujourd'hui c'est lundi. | none |
+| 43 | Location | J'habite a Baton Rouge, en Louisiane. | capital |
+| 82 | Culture | L'arbre de la Louisiane est le cypres. | accent |
+
+- **DayNumber**: Instructional day 1-177 (matches the school calendar)
+- **Theme**: Content category
+- **CorrectSentence**: The correct French sentence
+- **ErrorType**: `none`, `capital`, `accent`, `missing_word`, `agreement`, or `punctuation`. Leave blank to use the automatic default (no errors before Feb 2, mixed errors after).
+
+### MathSpiral
+
+| A: DayNumber | B: Strand | C: Problem1 | D: Problem2 | E: Problem3 |
+|---|---|---|---|---|
+| 1 | Add10 | 5 + 3 = ? | 2 + 6 = ? | 7 + 1 = ? |
+| 31 | PlaceVal | 14 = ___ tens ___ ones | | |
+
+- **DayNumber**: Instructional day 1-177
+- **Strand**: Math topic (Add10, Sub10, PlaceVal, etc.)
+- **Problem1-3**: Up to 3 math problems per day. Leave blank if fewer.
 
 ---
 
-## Google Slides Template
+## Step 2: Create Google Slides Template
 
-Your template slide must contain these exact placeholder strings:
+Design a single-slide template with these placeholders in text boxes:
 
 | Placeholder | Replaced With |
-|-------------|---------------|
-| `{{FrenchDate}}` | French-formatted date (e.g., "mercredi 12 février") |
-| `{{MathReviewProblem}}` | Content from the MathProblem column |
-| `{{FrenchDWL}}` | Content from the FrenchSkill column |
+|---|---|
+| `{{FrenchDate}}` | French date (e.g., "mercredi 12 fevrier") |
+| `{{FrenchSentence}}` | French sentence (with errors after Feb 2) |
+| `{{FrenchCorrect}}` | Correct sentence (for teacher/answer key) |
+| `{{MathProblem1}}` | First math problem |
+| `{{MathProblem2}}` | Second math problem |
+| `{{MathProblem3}}` | Third math problem |
+| `{{DayNumber}}` | Instructional day number (1-177) |
+| `{{WeekNumber}}` | Week number (1-36) |
+| `{{ErrorType}}` | Error type label (for teacher reference) |
 
-Place these placeholders in text boxes on the first slide of your template. The script duplicates this slide for each data row.
+Placeholders work inside text boxes, table cells, and grouped elements.
+
+**Legacy placeholders** also supported for backward compatibility:
+- `{{MathReviewProblem}}` (same as `{{MathProblem1}}`)
+- `{{FrenchDWL}}` (same as `{{FrenchSentence}}`)
 
 ---
 
-## Installation
+## Step 3: Install the Script
 
-1. **Open your Google Sheet** containing the bell ringer data.
-   - Sheet ID: `1-23V3MDha24a_n-ZmrR7COgD0BpdWa3UQzALd32iz6E`
-   - URL: https://docs.google.com/spreadsheets/d/1-23V3MDha24a_n-ZmrR7COgD0BpdWa3UQzALd32iz6E/edit
+1. **Open your Google Sheet**
+   - Sheet URL: https://docs.google.com/spreadsheets/d/1-23V3MDha24a_n-ZmrR7COgD0BpdWa3UQzALd32iz6E/edit
 
-2. **Open the Script Editor:**
-   - Go to **Extensions > Apps Script**
+2. **Open the Script Editor**: Extensions > Apps Script
 
-3. **Replace the default code:**
-   - Delete everything in `Code.gs`
-   - Paste the entire contents of `Code.gs` from this repository
+3. **Replace the default code**: Delete everything in `Code.gs`, paste the contents of `Code.gs` from this repository.
 
-4. **Add the manifest** (optional but recommended):
-   - In the Apps Script editor, click the gear icon (Project Settings)
-   - Check **Show "appsscript.json" manifest file in editor**
-   - Click on `appsscript.json` in the sidebar
+4. **Add the manifest** (recommended):
+   - Click the gear icon (Project Settings)
+   - Check "Show appsscript.json manifest file in editor"
+   - Click `appsscript.json` in the sidebar
    - Replace its contents with the `appsscript.json` from this repository
 
-5. **Save the project** (Ctrl+S / Cmd+S)
+5. **Save** (Ctrl+S / Cmd+S)
 
-6. **Reload the spreadsheet** — You should see the **⚡ Admin** menu appear.
-
----
-
-## Usage
-
-### First Run
-
-1. Click **⚡ Admin > Test Configuration** to verify everything is set up.
-2. Google will ask you to authorize the script — click through the permissions prompts.
-3. Review the test results in the alert dialog.
-
-### Generating Slides
-
-1. Click **⚡ Admin > Generate Slides**
-2. The script will:
-   - Read all rows where "Generated?" is empty
-   - Skip blank rows
-   - Create a new presentation titled "Journal du Matin - Generated YYYY-MM-DD"
-   - Replace placeholders on each slide with the row's data
-   - Mark processed rows as "Done"
-3. A dialog shows the number of slides created and a link to the new presentation.
+6. **Reload the spreadsheet** -- the **Admin** menu will appear.
 
 ---
 
-## Configuration
+## Step 4: Configure
 
-The `CONFIG` object at the top of `Code.gs` can be adjusted:
+1. Click **Admin > Setup Configuration...**
+2. Paste your **Template Slides ID** when prompted
+3. Paste your **Output Folder ID** when prompted
+4. Click **Admin > Test Configuration** to verify
 
-```javascript
-const CONFIG = {
-  TEMPLATE_ID: '1f7z8OTSxXc8GTaf1bggIdzBq5rsgV9xZBR8NXvFeX2U',
-  COL_DATE: 1,           // Column A
-  COL_MATH_PROBLEM: 2,   // Column B
-  COL_FRENCH_SKILL: 3,   // Column C
-  COL_GENERATED: 4,      // Column D
-  START_ROW: 2,          // First data row (after header)
-  // Placeholder strings in the template:
-  PLACEHOLDER_DATE: '{{FrenchDate}}',
-  PLACEHOLDER_MATH: '{{MathReviewProblem}}',
-  PLACEHOLDER_FRENCH: '{{FrenchDWL}}',
-};
+---
+
+## Step 5: Build and Verify Calendar
+
+1. Click **Admin > Build School Calendar**
+2. Review the new "Calendar" sheet (177 rows, one per instructional day)
+3. **Verify dates** against the official EBR 2025-26 calendar:
+   https://ebrschools.org/wp-content/uploads/2025/03/2025-2026-EBRPSS-School-Year-Calendar.pdf
+4. If any dates are wrong, edit the `HOLIDAYS` array in `getSchoolDays_()` and rebuild
+
+---
+
+## Step 6: Populate Spiral Sheets
+
+### Option A: Manual
+Fill in `FrenchSpiral` and `MathSpiral` row by row for days 1-177.
+
+### Option B: Scan French Folder
+1. Click **Admin > Scan French Folder...**
+2. Paste a Google Drive folder ID containing French vocabulary Google Docs
+3. Review the "FrenchExtract" sheet and copy relevant sentences into "FrenchSpiral"
+
+Aim for ~80% automated, ~20% manual curation for standards gaps.
+
+---
+
+## Step 7: Generate Slides
+
+### Generate Everything
+1. Click **Admin > Generate Full Year**
+2. The script processes **5 weeks per batch** (stays under the 6-minute limit)
+3. A dialog shows progress. Click **Generate Full Year** again to continue.
+4. Repeat until all 36 weeks are done.
+
+### Generate One Week at a Time
+- **Admin > Generate Next Week** -- generates the next unprocessed week
+- **Admin > Generate Specific Week...** -- prompts for a week number
+
+### Organize
+After generation, click **Admin > Organize into Week Folders** to create:
+```
+Output Folder/
+  Week 01 (Aug 7 - Aug 8)/
+    Journal du Matin - Semaine 01 (Aug 7 - Aug 8).gslides
+  Week 02 (Aug 11 - Aug 15)/
+    Journal du Matin - Semaine 02 (Aug 11 - Aug 15).gslides
+  ...
+  Week 36 (May 18 - May 21)/
+    Journal du Matin - Semaine 36 (May 18 - May 21).gslides
 ```
 
-If your columns are in a different order, update the `COL_*` values accordingly (1 = A, 2 = B, etc.).
+---
+
+## Error Introduction Engine
+
+Before Feb 2, 2026: All French sentences appear **correct** (no errors).
+
+After Feb 2, 2026: The script **introduces errors** into the French sentence for students to identify and correct. Error types:
+
+| Type | What It Does | Example |
+|---|---|---|
+| `none` | No error | Bonjour, je m'appelle Cary. |
+| `capital` | Lowercases first letter | bonjour, je m'appelle Cary. |
+| `accent` | Removes one accent | Bonjour, je m'appelle fev**r**ier. |
+| `missing_word` | Removes middle word | J'habite Baton Rouge. |
+| `agreement` | Swaps le/la, un/une | **la** chat est noir. |
+| `punctuation` | Removes trailing punctuation | Bonjour, je m'appelle Cary |
+
+**Priority**: If `FrenchSpiral` has an ErrorType value, that is used. Otherwise the automatic default rotation applies.
 
 ---
 
-## French Date Formatting
+## Daily Teacher Workflow
 
-The `formatDateInFrench()` helper converts dates like this:
+```
+1. Monday: Open this week's presentation from the Drive folder
+2. Project the first slide (error visible to students)
+3. Students correct independently (3 min)
+4. Reveal correct: "La bonne phrase est..."
+5. Math spiral review + correction
+6. Advance to next slide
+```
 
-| Input | Output |
-|-------|--------|
-| 2/12/2025 | mercredi 12 février |
-| 3/1/2025 | samedi 1er mars |
-| 12/25/2025 | jeudi 25 décembre |
+---
 
-Note: The 1st of any month uses "1er" (premier) per French convention.
+## Quarterly Maintenance
+
+At the end of each 9-week period:
+1. Update `FrenchSpiral` and `MathSpiral` with new content
+2. Clear the relevant rows in the "GenerationLog" sheet
+3. Re-run **Generate Specific Week...** for the updated weeks
+
+---
+
+## Sheets Created by the Script
+
+| Sheet | Purpose | Created By |
+|---|---|---|
+| Calendar | 177 instructional days for review | "Build School Calendar" |
+| FrenchExtract | Raw text from Drive folder scan | "Scan French Folder" |
+| GenerationLog | Tracks which weeks have been generated | Auto-created on first generation |
 
 ---
 
 ## Troubleshooting
 
 | Problem | Solution |
-|---------|----------|
-| **⚡ Admin menu doesn't appear** | Reload the spreadsheet. The `onOpen` trigger runs on page load. |
-| **"Cannot access template" error** | Verify the template ID is correct and the template is shared with your account. |
-| **Dates show as numbers** | Make sure the Date column is formatted as a Date in Google Sheets (Format > Number > Date). |
-| **Placeholders not replaced** | Check that your template uses the exact strings: `{{FrenchDate}}`, `{{MathReviewProblem}}`, `{{FrenchDWL}}`. |
-| **Authorization error** | Re-run and accept all permission prompts. The script needs access to Sheets, Slides, and Drive. |
-| **"Nothing to Generate" message** | All rows already have "Done" in the Generated? column. Clear the column to regenerate. |
+|---|---|
+| **Admin menu missing** | Reload the spreadsheet |
+| **"Setup Required" error** | Run Admin > Setup Configuration... |
+| **"Missing Sheets" error** | Create FrenchSpiral and MathSpiral tabs |
+| **Template not found** | Verify the Slides ID in Setup Configuration |
+| **Slow generation** | Normal: ~1 min per week. Check Apps Script quotas if stuck. |
+| **Wrong dates** | Edit the HOLIDAYS array in `getSchoolDays_()`, rebuild calendar |
+| **Placeholders not replaced** | Ensure template uses exact `{{placeholder}}` strings |
+| **Generation seems stuck** | Check the "GenerationLog" sheet. Clear rows to regenerate weeks. |
+| **Permission errors** | Re-run and accept all OAuth prompts. Needs Sheets, Slides, Drive, Docs access. |
 
 ---
 
-## Scheduling (Optional)
+## Execution Checklist
 
-To run the script automatically on a schedule:
-
-1. In Apps Script, go to **Triggers** (clock icon in the sidebar)
-2. Click **+ Add Trigger**
-3. Configure:
-   - Function: `generateSlides`
-   - Event source: Time-driven
-   - Type: Day timer (e.g., 6:00 AM - 7:00 AM)
-4. Click **Save**
-
-The script will run daily and process any new rows.
+```
+[ ] Run setupConfig() -- save Template ID and Output Folder ID
+[ ] Create FrenchSpiral and MathSpiral sheets with content for days 1-177
+[ ] (Optional) Run scanFrenchFolderToSheet() to extract vocab from Drive
+[ ] Run writeSchoolCalendar() -- verify 177 days against official calendar
+[ ] Run testConfiguration() -- all checks pass
+[ ] Run promptGenerateWeek() for week 1 -- test with a single week
+[ ] Run generateFullYearJournal() repeatedly until all weeks are done
+[ ] Run organizeIntoWeeks() -- creates weekly Drive folders
+[ ] Share Week 01 folder and verify slides project correctly
+```

@@ -29,23 +29,25 @@ Automatically generate personalized Google Slides presentations from student dat
 ### Bell Ringer Slide Generator (Journal du Matin)
 **Location:** `bell-ringer-slides/`
 
-Generate daily "Journal du Matin" bell ringer slides for French Immersion classes from a Google Sheet.
+Full-year bell ringer slide generator for EBR G1 French Immersion (2025-26, 177 instructional days). Creates weekly Google Slides presentations from spiral content sheets.
 
 **Features:**
-- Reads date, math problem, and French skill data from a spreadsheet
-- Converts dates to French format (e.g., "lundi 12 février")
-- Creates a new Google Slides presentation with one slide per day
-- Placeholder replacement: `{{FrenchDate}}`, `{{MathReviewProblem}}`, `{{FrenchDWL}}`
-- Marks processed rows as "Done" to prevent duplicates
-- Custom menu integration: `⚡ Admin → Generate Slides`
+- Full EBR 2025-26 school calendar with holiday exclusions
+- Spiral content from `FrenchSpiral` and `MathSpiral` sheets
+- French error introduction engine (capitalization, accents, agreement, etc.) starting Feb 2
+- French date formatting (e.g., "mercredi 12 fevrier")
+- Batch generation (5 weeks per run, avoids Apps Script time limits)
+- Drive folder organization by week
+- French vocabulary extraction from Drive folders
+- Custom menu: `Admin > Generate Full Year / Generate Next Week`
 
 **Quick Start:**
-1. Set up your [Google Sheet and Slides template](./bell-ringer-slides/SETUP.md)
-2. Install the script via Extensions > Apps Script
-3. Run from the custom menu: `⚡ Admin → Generate Slides`
+1. Create `FrenchSpiral` and `MathSpiral` sheets with content for days 1-177
+2. [Install and configure](./bell-ringer-slides/SETUP.md) via Extensions > Apps Script
+3. Run from the custom menu: `Admin > Generate Full Year`
 
 **Documentation:**
-- [Setup Guide](./bell-ringer-slides/SETUP.md) - Installation, configuration, and usage
+- [Setup Guide](./bell-ringer-slides/SETUP.md) - Installation, configuration, spiral sheets, and full workflow
 
 ---
 
